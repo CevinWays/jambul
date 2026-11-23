@@ -1,0 +1,191 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  html, body { margin: 0; background: transparent; overflow: hidden; }
+  #pill {
+    position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+    width: 160px; height: 32px; background: #000; color: #fff;
+    border-radius: 0 0 18px 18px; font: 13px sans-serif; cursor: pointer; overflow: hidden;
+    transition: width .3s cubic-bezier(.3,1.4,.5,1), height .3s cubic-bezier(.3,1.4,.5,1);
+  }
+  body.away #pill { display: none; }
+  #pill.open { width: 420px; height: 180px; border-radius: 0 0 28px 28px; }
+  #dash { display: none; padding: 0 20px; align-items: center; gap: 14px; font-size: 12px; color: #ccc; }
+  #pill.open #dash { display: flex; }
+  #clock { font-weight: 600; color: #fff; font-size: 14px; }
+  #volume { flex: 1; min-width: 60px; accent-color: #fff; }
+  #dash span { white-space: nowrap; }
+  #mini { height: 32px; line-height: 32px; text-align: center; padding: 0 14px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
+  #pill.open #mini, #pill.notify #mini { display: none; }
+  #pill.notify { width: 420px; height: 68px; border-radius: 0 0 24px 24px; }
+  #toast { display: none; padding: 12px 20px; }
+  #pill.notify #toast { display: block; }
+  #pill.open #toast { display: none; }
+  #toastApp { color: #aaa; font-size: 11px; }
+  #toastSummary { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #toastBody { color: #ccc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #full { display: none; padding: 16px; gap: 14px; align-items: center; }
+  #pill.open #full { display: flex; }
+  #art { width: 84px; height: 84px; border-radius: 12px; background: #222; object-fit: cover; flex: none; }
+  #info { flex: 1; min-width: 0; }
+  #title { font-weight: 600; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #artist { color: #aaa; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #bar { height: 4px; background: #333; border-radius: 2px; margin: 12px 0; }
+  #progress { height: 100%; width: 0; background: #fff; border-radius: 2px; }
+  #controls { display: flex; gap: 22px; justify-content: center; }
+  #controls button { background: none; border: 0; color: #fff; font-size: 18px; cursor: pointer; }
+</style>
+</head>
+<body>
+<div id="pill">
+  <div id="mini">notch</div>
+  <div id="toast">
+    <div id="toastApp"></div>
+    <div id="toastSummary"></div>
+    <div id="toastBody"></div>
+  </div>
+  <div id="full">
+    <img id="art" alt="">
+    <div id="info">
+      <div id="title">Tidak ada musik</div>
+      <div id="artist"></div>
+      <div id="bar"><div id="progress"></div></div>
+      <div id="controls">
+        <button data-action="previous">⏮</button>
+        <button data-action="play_pause" id="playPause">⏯</button>
+        <button data-action="next">⏭</button>
+      </div>
+    </div>
+  </div>
+  <div id="dash">
+    <span id="clock"></span>
+    <span id="battery"></span>
+    <input id="volume" type="range" min="0" max="100" aria-label="Lautstärke">
+    <span id="weather"></span>
+  </div>
+</div>
+<script>
+  const { invoke } = window.__TAURI__.core;
+  const { listen } = window.__TAURI__.event;
+  const pill = document.getElementById('pill');
+  const sizes = { closed: [160, 32], open: [420, 180], notify: [420, 68], away: [0, 0] };
+  let isAway = false;
+  const TOAST_DURATION_MS = 5000;
+  let toastTimer;
+
+  const sendHitRect = (state) => {
+    const [width, height] = sizes[state];
+    const x = Math.round((window.innerWidth - width) / 2);
+    invoke('set_hit_rect', { x, y: 0, width, height });
+  };
+
+  const hideToast = () => {
+    pill.classList.remove('notify');
+    if (!pill.classList.contains('open')) sendHitRect('closed');
+  };
+
+  listen('fullscreen', (event) => {
+    isAway = event.payload;
+    document.body.classList.toggle('away', isAway);
+    clearTimeout(toastTimer);
+    pill.classList.remove('notify');
+    sendHitRect(isAway ? 'away' : pill.classList.contains('open') ? 'open' : 'closed');
+  });
+
+  listen('notification', (event) => {
+    if (isAway || pill.classList.contains('open')) return;
+    document.getElementById('toastApp').textContent = event.payload.app_name;
+    document.getElementById('toastSummary').textContent = event.payload.summary;
+    document.getElementById('toastBody').textContent = event.payload.body;
+    pill.classList.add('notify');
+    sendHitRect('notify');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(hideToast, TOAST_DURATION_MS);
+  });
+
+  pill.addEventListener('click', () => {
+    clearTimeout(toastTimer);
+    pill.classList.remove('notify');
+    const isOpen = pill.classList.toggle('open');
+    sendHitRect(isOpen ? 'open' : 'closed');
+    if (isOpen) refreshDashboard();
+  });
+
+  // TODO: unverified — default location is Jakarta, make it a setting
+  const WEATHER_LATITUDE = -6.2;
+  const WEATHER_LONGITUDE = 106.8;
+  const WEATHER_TTL_MS = 15 * 60 * 1000;
+  const DASHBOARD_REFRESH_MS = 5000;
+  const WEATHER_LABELS = [
+    [0, 'Cerah'], [3, 'Berawan'], [48, 'Berkabut'], [67, 'Hujan'],
+    [77, 'Salju'], [82, 'Hujan lebat'], [99, 'Badai'],
+  ];
+  const weatherLabel = (code) => (WEATHER_LABELS.find(([maxCode]) => code <= maxCode) || [0, ''])[1];
+  let weatherFetchedAt = 0;
+
+  const refreshClock = () => {
+    const now = new Date();
+    document.getElementById('clock').textContent =
+      now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) +
+      ' · ' + now.toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short' });
+  };
+
+  const refreshWeather = async () => {
+    if (Date.now() - weatherFetchedAt < WEATHER_TTL_MS) return;
+    try {
+      const url = `https://api.open-meteo.com/v1/forecast?latitude=${WEATHER_LATITUDE}&longitude=${WEATHER_LONGITUDE}&current=temperature_2m,weather_code`;
+      const { current } = await (await fetch(url)).json();
+      document.getElementById('weather').textContent = `${Math.round(current.temperature_2m)}° ${weatherLabel(current.weather_code)}`;
+      weatherFetchedAt = Date.now();
+    } catch (error) {
+      document.getElementById('weather').textContent = '';
+    }
+  };
+
+  const refreshDashboard = async () => {
+    refreshClock();
+    refreshWeather();
+    const battery = await invoke('battery_status');
+    document.getElementById('battery').textContent = battery ? `${battery.charging ? '⚡' : '🔋'} ${battery.percent}%` : '';
+    const slider = document.getElementById('volume');
+    if (slider === document.activeElement) return;
+    try {
+      const volume = await invoke('volume_get');
+      slider.value = volume.percent;
+    } catch (error) {
+      slider.disabled = true;
+    }
+  };
+
+  document.getElementById('volume').addEventListener('change', (event) => {
+    invoke('volume_set', { percent: Number(event.target.value) });
+  });
+  document.getElementById('dash').addEventListener('click', (event) => event.stopPropagation());
+  setInterval(() => { if (pill.classList.contains('open')) refreshDashboard(); }, DASHBOARD_REFRESH_MS);
+
+  document.querySelectorAll('#controls button').forEach((button) => {
+    button.addEventListener('click', (event) => {
+      event.stopPropagation();
+      invoke('media_control', { action: button.dataset.action });
+    });
+  });
+
+  const render = (media) => {
+    const art = document.getElementById('art');
+    document.getElementById('title').textContent = media ? media.title || 'Tanpa judul' : 'Tidak ada musik';
+    document.getElementById('artist').textContent = media ? media.artist : '';
+    document.getElementById('mini').textContent = media && media.title ? media.title : 'notch';
+    document.getElementById('playPause').textContent = media && media.playing ? '⏸' : '▶';
+    art.style.visibility = media && media.art_url ? 'visible' : 'hidden';
+    if (media && media.art_url) art.src = media.art_url;
+    const ratio = media && media.length_us ? media.position_us / media.length_us : 0;
+    document.getElementById('progress').style.width = `${Math.min(100, ratio * 100)}%`;
+  };
+
+  listen('media', (event) => render(event.payload));
+  sendHitRect('closed');
+</script>
+</body>
+</html>

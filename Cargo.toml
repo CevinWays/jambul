@@ -1,0 +1,16 @@
+[package]
+name = "notch"
+version = "0.1.0"
+edition = "2021"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+serde = { version = "1", features = ["derive"] }
+futures-util = "0.3"
+tokio ={ version = "1", features = ["time"] }
+zbus = { version = "5", default-features = false, features = ["tokio"] }
+gtk = "0.18"
+gtk-layer-shell = { version = "0.8", features = ["v0_6"] }
