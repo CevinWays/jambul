@@ -11,12 +11,24 @@
     transition: width .3s cubic-bezier(.3,1.4,.5,1), height .3s cubic-bezier(.3,1.4,.5,1);
   }
   body.away #pill { display: none; }
-  #pill.open { width: 420px; height: 180px; border-radius: 0 0 28px 28px; }
-  #dash { display: none; padding: 0 20px; align-items: center; gap: 14px; font-size: 12px; color: #ccc; }
+  #pill.open { width: 420px; height: 264px; border-radius: 0 0 28px 28px; }
+  #dash { display: none; padding: 0 20px; align-items: center; gap: 10px; font-size: 12px; color: #ccc; }
   #pill.open #dash { display: flex; }
   #clock { font-weight: 600; color: #fff; font-size: 14px; }
   #volume { flex: 1; min-width: 60px; accent-color: #fff; }
   #dash span { white-space: nowrap; }
+  #weather { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+  #clock, #battery { flex: none; }
+  #quick { display: none; padding: 0 20px; align-items: center; gap: 14px; font-size: 12px; color: #ccc; margin-top: 10px; }
+  #pill.open #quick { display: flex; }
+  #pomodoro { display: none; padding: 0 20px; align-items: center; gap: 12px; font-size: 12px; color: #ccc; margin-top: 10px; }
+  #pill.open #pomodoro { display: flex; }
+  #pomoPhase { flex: 1; }
+  #pomoTime { font-weight: 600; font-size: 16px; color: #fff; font-variant-numeric: tabular-nums; }
+  #pomodoro button { background: #222; border: 0; color: #fff; border-radius: 12px; padding: 6px 12px; font-size: 12px; cursor: pointer; }
+  #brightness { flex: 1; min-width: 60px; accent-color: #fff; }
+  #quick button { background: #222; border: 0; color: #888; border-radius: 12px; padding: 6px 12px; font-size: 12px; cursor: pointer; }
+  #quick button.on { background: #fff; color: #000; }
   #mini { height: 32px; line-height: 32px; text-align: center; padding: 0 14px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
   #pill.open #mini, #pill.notify #mini { display: none; }
   #pill.notify { width: 420px; height: 68px; border-radius: 0 0 24px 24px; }
@@ -40,7 +52,7 @@
 </head>
 <body>
 <div id="pill">
-  <div id="mini">jambul</div>
+  <div id="mini"></div>
   <div id="toast">
     <div id="toastApp"></div>
     <div id="toastSummary"></div>
@@ -65,12 +77,24 @@
     <input id="volume" type="range" min="0" max="100" aria-label="Lautstärke">
     <span id="weather"></span>
   </div>
+  <div id="quick">
+    <span>☀</span>
+    <input id="brightness" type="range" min="5" max="100" aria-label="Helligkeit">
+    <button id="wifi">Wi-Fi</button>
+    <button id="bluetooth">Bluetooth</button>
+  </div>
+  <div id="pomodoro">
+    <span id="pomoPhase"></span>
+    <span id="pomoTime"></span>
+    <button id="pomoToggle" aria-label="Start oder Pause">▶</button>
+    <button id="pomoReset" aria-label="Zurücksetzen">↺</button>
+  </div>
 </div>
 <script>
   const { invoke } = window.__TAURI__.core;
   const { listen } = window.__TAURI__.event;
   const pill = document.getElementById('pill');
-  const sizes = { closed: [160, 32], open: [420, 180], notify: [420, 68], away: [0, 0] };
+  const sizes = { closed: [160, 32], open: [420, 264], notify: [420, 68], away: [0, 0] };
   let isAway = false;
   const TOAST_DURATION_MS = 5000;
   let toastTimer;
@@ -94,16 +118,18 @@
     sendHitRect(isAway ? 'away' : pill.classList.contains('open') ? 'open' : 'closed');
   });
 
-  listen('notification', (event) => {
+  const showToast = (appName, summary, body) => {
     if (isAway || pill.classList.contains('open')) return;
-    document.getElementById('toastApp').textContent = event.payload.app_name;
-    document.getElementById('toastSummary').textContent = event.payload.summary;
-    document.getElementById('toastBody').textContent = event.payload.body;
+    document.getElementById('toastApp').textContent = appName;
+    document.getElementById('toastSummary').textContent = summary;
+    document.getElementById('toastBody').textContent = body;
     pill.classList.add('notify');
     sendHitRect('notify');
     clearTimeout(toastTimer);
     toastTimer = setTimeout(hideToast, TOAST_DURATION_MS);
-  });
+  };
+
+  listen('notification', (event) => showToast(event.payload.app_name, event.payload.summary, event.payload.body));
 
   pill.addEventListener('click', () => {
     clearTimeout(toastTimer);
@@ -113,9 +139,13 @@
     if (isOpen) refreshDashboard();
   });
 
-  // TODO: unverified — default location is Jakarta, make it a setting
-  const WEATHER_LATITUDE = -6.2;
-  const WEATHER_LONGITUDE = 106.8;
+  const FALLBACK_LOCATION = { latitude: -6.2, longitude: 106.8, city: 'Jakarta' };
+  const GEOLOCATION_URL = 'https://ipwho.is/';
+  let locationPromise;
+  const resolveLocation = () => locationPromise ||= fetch(GEOLOCATION_URL)
+    .then((response) => response.json())
+    .then((data) => (data.success ? { latitude: data.latitude, longitude: data.longitude, city: data.city } : FALLBACK_LOCATION))
+    .catch(() => FALLBACK_LOCATION);
   const WEATHER_TTL_MS = 15 * 60 * 1000;
   const DASHBOARD_REFRESH_MS = 5000;
   const WEATHER_LABELS = [
@@ -135,9 +165,10 @@
   const refreshWeather = async () => {
     if (Date.now() - weatherFetchedAt < WEATHER_TTL_MS) return;
     try {
-      const url = `https://api.open-meteo.com/v1/forecast?latitude=${WEATHER_LATITUDE}&longitude=${WEATHER_LONGITUDE}&current=temperature_2m,weather_code`;
+      const { latitude, longitude, city } = await resolveLocation();
+      const url = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,weather_code`;
       const { current } = await (await fetch(url)).json();
-      document.getElementById('weather').textContent = `${Math.round(current.temperature_2m)}° ${weatherLabel(current.weather_code)}`;
+      document.getElementById('weather').textContent = `${city} · ${Math.round(current.temperature_2m)}° ${weatherLabel(current.weather_code)}`;
       weatherFetchedAt = Date.now();
     } catch (error) {
       document.getElementById('weather').textContent = '';
@@ -147,6 +178,7 @@
   const refreshDashboard = async () => {
     refreshClock();
     refreshWeather();
+    refreshQuick();
     const battery = await invoke('battery_status');
     document.getElementById('battery').textContent = battery ? `${battery.charging ? '⚡' : '🔋'} ${battery.percent}%` : '';
     const slider = document.getElementById('volume');
@@ -158,6 +190,31 @@
       slider.disabled = true;
     }
   };
+
+  const refreshQuick = async () => {
+    const brightnessSlider = document.getElementById('brightness');
+    if (brightnessSlider !== document.activeElement) {
+      const percent = await invoke('brightness_get');
+      if (percent === null) brightnessSlider.disabled = true;
+      else brightnessSlider.value = percent;
+    }
+    const radios = await invoke('radio_status');
+    document.getElementById('wifi').classList.toggle('on', radios.wifi);
+    document.getElementById('bluetooth').classList.toggle('on', radios.bluetooth);
+  };
+
+  document.getElementById('brightness').addEventListener('change', (event) => {
+    invoke('brightness_set', { percent: Number(event.target.value) });
+  });
+  [['wifi', 'wifi_set'], ['bluetooth', 'bluetooth_set']].forEach(([id, command]) => {
+    const button = document.getElementById(id);
+    button.addEventListener('click', async (event) => {
+      event.stopPropagation();
+      await invoke(command, { enabled: !button.classList.contains('on') });
+      refreshQuick();
+    });
+  });
+  document.getElementById('quick').addEventListener('click', (event) => event.stopPropagation());
 
   document.getElementById('volume').addEventListener('change', (event) => {
     invoke('volume_set', { percent: Number(event.target.value) });
@@ -172,18 +229,80 @@
     });
   });
 
+  const DEFAULT_ART = 'data:image/svg+xml,' + encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 84 84"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3a3a4a"/><stop offset="1" stop-color="#1a1a22"/></linearGradient></defs><rect width="84" height="84" fill="url(#g)"/><path d="M34 58V30l22-5v26" fill="none" stroke="#bbb" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><circle cx="29" cy="58" r="6" fill="#bbb"/><circle cx="51" cy="51" r="6" fill="#bbb"/></svg>');
+  document.getElementById('art').addEventListener('error', (event) => { event.target.src = DEFAULT_ART; });
+
+  const POMODORO_PHASES = {
+    focus: { label: 'Fokus', icon: '🍅', minutes: 25, next: 'break', doneMessage: 'Waktu istirahat' },
+    break: { label: 'Istirahat', icon: '☕', minutes: 5, next: 'focus', doneMessage: 'Kembali fokus' },
+  };
+  const MS_PER_MINUTE = 60 * 1000;
+  const POMODORO_TICK_MS = 1000;
+  let pomodoro = { phase: 'focus', remainingMs: POMODORO_PHASES.focus.minutes * MS_PER_MINUTE, endsAt: null };
+  let lastMedia = null;
+
+  const formatClock = (milliseconds) => {
+    const totalSeconds = Math.ceil(milliseconds / 1000);
+    return `${String(Math.floor(totalSeconds / 60)).padStart(2, '0')}:${String(totalSeconds % 60).padStart(2, '0')}`;
+  };
+
+  const renderMini = () => {
+    const phase = POMODORO_PHASES[pomodoro.phase];
+    const mini = document.getElementById('mini');
+    if (pomodoro.endsAt) mini.textContent = `${phase.icon} ${formatClock(pomodoro.remainingMs)}`;
+    else mini.textContent = lastMedia && lastMedia.title ? lastMedia.title : '';
+  };
+
+  const renderPomodoro = () => {
+    document.getElementById('pomoPhase').textContent = POMODORO_PHASES[pomodoro.phase].label;
+    document.getElementById('pomoTime').textContent = formatClock(pomodoro.remainingMs);
+    document.getElementById('pomoToggle').textContent = pomodoro.endsAt ? '⏸' : '▶';
+    renderMini();
+  };
+
+  const resetPhase = (phaseName) => {
+    pomodoro = { phase: phaseName, remainingMs: POMODORO_PHASES[phaseName].minutes * MS_PER_MINUTE, endsAt: null };
+  };
+
+  const tickPomodoro = () => {
+    if (!pomodoro.endsAt) return;
+    pomodoro.remainingMs = pomodoro.endsAt - Date.now();
+    if (pomodoro.remainingMs <= 0) {
+      const finished = POMODORO_PHASES[pomodoro.phase];
+      resetPhase(finished.next);
+      showToast('Pomodoro', `${finished.label} selesai`, finished.doneMessage);
+    }
+    renderPomodoro();
+  };
+
+  document.getElementById('pomoToggle').addEventListener('click', (event) => {
+    event.stopPropagation();
+    pomodoro.endsAt = pomodoro.endsAt ? null : Date.now() + pomodoro.remainingMs;
+    renderPomodoro();
+  });
+  document.getElementById('pomoReset').addEventListener('click', (event) => {
+    event.stopPropagation();
+    resetPhase('focus');
+    renderPomodoro();
+  });
+  document.getElementById('pomodoro').addEventListener('click', (event) => event.stopPropagation());
+  setInterval(tickPomodoro, POMODORO_TICK_MS);
+
   const render = (media) => {
+    lastMedia = media;
     const art = document.getElementById('art');
     document.getElementById('title').textContent = media ? media.title || 'Tanpa judul' : 'Tidak ada musik';
     document.getElementById('artist').textContent = media ? media.artist : '';
-    document.getElementById('mini').textContent = media && media.title ? media.title : 'jambul';
+    renderMini();
     document.getElementById('playPause').textContent = media && media.playing ? '⏸' : '▶';
-    art.style.visibility = media && media.art_url ? 'visible' : 'hidden';
-    if (media && media.art_url) art.src = media.art_url;
+    art.src = media && media.art_url ? media.art_url : DEFAULT_ART;
     const ratio = media && media.length_us ? media.position_us / media.length_us : 0;
     document.getElementById('progress').style.width = `${Math.min(100, ratio * 100)}%`;
   };
 
+  render(null);
+  renderPomodoro();
   listen('media', (event) => render(event.payload));
   sendHitRect('closed');
 </script>
