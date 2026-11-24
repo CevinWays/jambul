@@ -1698,6 +1698,20 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3bd1574e617a9a6c1f8f8181bd7e841e1f20e4277607ef28945765188d6284d4"
 
 [[package]]
+name = "jambul"
+version = "0.1.0"
+dependencies = [
+ "futures-util",
+ "gtk",
+ "gtk-layer-shell",
+ "serde",
+ "tauri",
+ "tauri-build",
+ "tokio",
+ "zbus",
+]
+
+[[package]]
 name = "javascriptcore-rs"
 version = "1.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2132,20 +2146,6 @@ name = "new_debug_unreachable"
 version = "1.0.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "650eef8c711430f1a879fdd01d4745a7deea475becfb90269c06775983bbf086"
-
-[[package]]
-name = "notch"
-version = "0.1.0"
-dependencies = [
- "futures-util",
- "gtk",
- "gtk-layer-shell",
- "serde",
- "tauri",
- "tauri-build",
- "tokio",
- "zbus",
-]
 
 [[package]]
 name = "num-conv"

@@ -45,5 +45,5 @@ fn main() {
             Ok(())
         })
         .run(tauri::generate_context!())
-        .expect("failed to run notch");
+        .expect("failed to run jambul");
 }

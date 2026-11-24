@@ -3,19 +3,19 @@ use std::path::PathBuf;
 use tauri::{AppHandle, Emitter};
 use zbus::{interface, Connection};
 
-const SERVICE_NAME: &str = "dev.notch.Notch";
-const OBJECT_PATH: &str = "/dev/notch";
+const SERVICE_NAME: &str = "dev.jambul.Jambul";
+const OBJECT_PATH: &str = "/dev/jambul";
 const KWIN_SERVICE: &str = "org.kde.KWin";
-const SCRIPT_NAME: &str = "notch-fullscreen";
+const SCRIPT_NAME: &str = "jambul-fullscreen";
 const SCRIPT_SOURCE: &str = include_str!("../kwin/fullscreen.js");
 pub const FULLSCREEN_EVENT: &str = "fullscreen";
 
-struct NotchService {
+struct JambulService {
     app: AppHandle,
 }
 
-#[interface(name = "dev.notch.Notch")]
-impl NotchService {
+#[interface(name = "dev.jambul.Jambul")]
+impl JambulService {
     fn set_fullscreen(&self, fullscreen: bool) {
         let _ = self.app.emit(FULLSCREEN_EVENT, fullscreen);
     }
@@ -68,7 +68,7 @@ pub fn start(app: AppHandle, connection: Connection) {
         let served = async {
             connection
                 .object_server()
-                .at(OBJECT_PATH, NotchService { app })
+                .at(OBJECT_PATH, JambulService { app })
                 .await?;
             connection.request_name(SERVICE_NAME).await
         }

@@ -1,7 +1,7 @@
 function reportFullscreen() {
   const active = workspace.activeWindow;
   const isFullscreen = active !== null && active.fullScreen;
-  callDBus("dev.notch.Notch", "/dev/notch", "dev.notch.Notch", "SetFullscreen", isFullscreen);
+  callDBus("dev.jambul.Jambul", "/dev/jambul", "dev.jambul.Jambul", "SetFullscreen", isFullscreen);
 }
 
 function watchWindow(window) {

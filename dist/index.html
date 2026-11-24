@@ -40,7 +40,7 @@
 </head>
 <body>
 <div id="pill">
-  <div id="mini">notch</div>
+  <div id="mini">jambul</div>
   <div id="toast">
     <div id="toastApp"></div>
     <div id="toastSummary"></div>
@@ -176,7 +176,7 @@
     const art = document.getElementById('art');
     document.getElementById('title').textContent = media ? media.title || 'Tanpa judul' : 'Tidak ada musik';
     document.getElementById('artist').textContent = media ? media.artist : '';
-    document.getElementById('mini').textContent = media && media.title ? media.title : 'notch';
+    document.getElementById('mini').textContent = media && media.title ? media.title : 'jambul';
     document.getElementById('playPause').textContent = media && media.playing ? '⏸' : '▶';
     art.style.visibility = media && media.art_url ? 'visible' : 'hidden';
     if (media && media.art_url) art.src = media.art_url;
