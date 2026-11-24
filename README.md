@@ -8,8 +8,9 @@ Inspired by [Poni](https://github.com/liimalim/Poni) for Windows. Not affiliated
 
 - Pill overlay that expands on click, with click-through everywhere outside it
 - Media widget for any MPRIS player (title, artist, art, progress, controls)
-- Notification toasts, shown by monitoring `org.freedesktop.Notifications` (Plasma's own popups still appear)
-- Dashboard: clock, battery, volume slider (`wpctl`) and weather (Open-Meteo, no API key)
+- Notification toasts, shown by monitoring `org.freedesktop.Notifications` (jambul asks Plasma to hold back its own popups; unverified)
+- Dashboard: clock, battery, volume (`wpctl`), brightness (logind), Wi-Fi (`nmcli`) and Bluetooth (`bluetoothctl`) toggles, weather (Open-Meteo, located by IP via ipwho.is)
+- Pomodoro timer (25 min focus, 5 min break), shown in the closed pill while running
 - Hides itself while a window is fullscreen (KDE only, through a KWin script)
 
 ## Requirements
@@ -25,13 +26,52 @@ sudo pacman -S --needed rustup webkit2gtk-4.1 gtk3 gtk-layer-shell
 rustup default stable
 ```
 
-## Run
+## Install
 
 ```bash
-cargo run
+sudo pacman -S --needed networkmanager bluez-utils
+cargo build --release --features tauri/custom-protocol
+install -Dm755 target/release/jambul ~/.local/bin/jambul
 ```
 
-Click the pill to open it. Send a test notification with `notify-send "Hello" "World"`.
+`networkmanager` (`nmcli`) and `bluez-utils` (`bluetoothctl`) are only needed for the Wi-Fi and Bluetooth toggles. Brightness goes through logind and needs no extra package.
+
+To try it without installing, use `cargo run`.
+
+## Usage
+
+Start and stop:
+
+```bash
+jambul &        # start
+pkill -x jambul # stop
+```
+
+Only run one instance at a time; starting it twice puts two pills on top of each other.
+
+Start automatically at login:
+
+```bash
+mkdir -p ~/.config/autostart
+sed "s|^Exec=.*|Exec=$HOME/.local/bin/jambul|" jambul.desktop > ~/.config/autostart/jambul.desktop
+```
+
+Turn autostart off again:
+
+```bash
+rm ~/.config/autostart/jambul.desktop
+```
+
+Using the pill:
+
+- Click the pill to open or close it.
+- Media controls work with any MPRIS player (Spotify, Firefox, mpv, ...).
+- The dashboard has volume and brightness sliders and Wi-Fi and Bluetooth toggles.
+- Pomodoro: press play to start a 25 minute focus; the remaining time shows in the closed pill. A toast announces the end of each phase, and the next phase waits for you to press play. The reset button returns to a fresh focus.
+- Notifications appear as a toast for 5 seconds. Test with `notify-send "Hello" "World"`.
+- The pill hides while a window is fullscreen and comes back afterwards.
+
+On Arch you can also build a package with the included `PKGBUILD` (`makepkg -si`, needs a `v0.1.0` tag on GitHub); it installs the autostart entry system-wide. Remove it with `sudo pacman -R jambul`.
 
 ## How it works
 
@@ -44,11 +84,11 @@ Click the pill to open it. Send a test notification with `notify-send "Hello" "W
 
 ## Known limitations
 
-- The weather location is hard-coded to Jakarta in `dist/index.html`.
 - MPRIS is polled, not driven by `PropertiesChanged` signals.
 - While fullscreen, the window is hidden with CSS rather than unmapped.
-- No brightness, Wi-Fi or Bluetooth toggles yet.
 - The app icon is a placeholder.
+- The pomodoro state is lost when jambul quits.
+- The weather location comes from the IP address, so it is city-level at best.
 
 ## License
 
