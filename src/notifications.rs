@@ -39,8 +39,25 @@ pub fn to_notification(arguments: NotifyArguments) -> Option<Notification> {
     Some(Notification { app_name, summary, body })
 }
 
+async fn inhibit_plasma_popups(connection: &Connection) {
+    let hints: HashMap<&str, zbus::zvariant::Value> = HashMap::new();
+    let inhibited = connection
+        .call_method(
+            Some(NOTIFICATIONS_INTERFACE),
+            "/org/freedesktop/Notifications",
+            Some(NOTIFICATIONS_INTERFACE),
+            "Inhibit",
+            &("jambul", "shown in jambul instead", hints),
+        )
+        .await;
+    if let Err(error) = inhibited {
+        eprintln!("plasma popups not inhibited: {error}");
+    }
+}
+
 async fn monitor(app: AppHandle) -> zbus::Result<()> {
     let connection = Connection::session().await?;
+    inhibit_plasma_popups(&connection).await;
     connection
         .call_method(
             Some("org.freedesktop.DBus"),
