@@ -49,3 +49,7 @@ Click the pill to open it. Send a test notification with `notify-send "Hello" "W
 - While fullscreen, the window is hidden with CSS rather than unmapped.
 - No brightness, Wi-Fi or Bluetooth toggles yet.
 - The app icon is a placeholder.
+
+## License
+
+MIT, see [LICENSE](LICENSE).
