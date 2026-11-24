@@ -1,0 +1,6 @@
+[Desktop Entry]
+Type=Application
+Name=jambul
+Comment=Interactive notch
+Exec=jambul
+Terminal=false

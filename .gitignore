@@ -1,2 +1,5 @@
 target/
 gen/
+pkg/
+src/*.tar.gz
+*.pkg.tar.zst
