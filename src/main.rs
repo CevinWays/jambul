@@ -24,7 +24,12 @@ fn main() {
             mpris::media_control,
             system::battery_status,
             system::volume_get,
-            system::volume_set
+            system::volume_set,
+            system::brightness_get,
+            system::brightness_set,
+            system::radio_status,
+            system::wifi_set,
+            system::bluetooth_set
         ])
         .setup(|app| {
             let connection = tauri::async_runtime::block_on(zbus::Connection::session())?;
@@ -39,7 +44,7 @@ fn main() {
             gtk_window.init_layer_shell();
             gtk_window.set_layer(Layer::Overlay);
             gtk_window.set_anchor(Edge::Top, true);
-            gtk_window.set_exclusive_zone(0);
+            gtk_window.set_exclusive_zone(-1);
             gtk_window.set_keyboard_mode(KeyboardMode::OnDemand);
             window.show()?;
             Ok(())
