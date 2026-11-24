@@ -43,6 +43,7 @@ To try it without installing, use `cargo run`.
 Start and stop:
 
 ```bash
+cd ~/Developer/jambul && cargo run
 jambul &        # start
 pkill -x jambul # stop
 ```
