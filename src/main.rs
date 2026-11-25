@@ -40,7 +40,7 @@ fn main() {
             let window = app.get_webview_window("main").ok_or("main window missing")?;
             let gtk_window = window.gtk_window()?;
             // webview in a layer-shell window never paints without an explicit size request
-            gtk_window.set_size_request(600, 240);
+            gtk_window.set_size_request(640, 260);
             gtk_window.init_layer_shell();
             gtk_window.set_layer(Layer::Overlay);
             gtk_window.set_anchor(Edge::Top, true);

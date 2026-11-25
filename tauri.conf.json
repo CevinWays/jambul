@@ -9,8 +9,8 @@
     "windows": [
       {
         "label": "main",
-        "width": 600,
-        "height": 240,
+        "width": 640,
+        "height": 260,
         "decorations": false,
         "transparent": true,
         "visible": false,
