@@ -12,6 +12,9 @@
     --green: #30d158;
     --red: #ff453a;
     --yellow: #ffd60a;
+    --brand-teal: #2db1b3;
+    --brand-mint: #7ac793;
+    --brand-gradient: linear-gradient(135deg, var(--brand-teal), var(--brand-mint));
     --spring: cubic-bezier(0.32, 1.28, 0.54, 1);
     --smooth: cubic-bezier(0.32, 0.72, 0, 1);
     --dur: 0.48s;
@@ -21,6 +24,7 @@
     --ear: 8px;
     color-scheme: dark;
   }
+  @font-face { font-family: "Outfit"; src: url("fonts/Outfit-Variable.ttf"); font-weight: 100 900; }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body {
     width: 100%; height: 100%; overflow: hidden; background: transparent; color: var(--text);
@@ -59,7 +63,10 @@
     font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; color: rgba(255, 255, 255, 0.86);
   }
 
-  #toast { position: absolute; inset: 0; padding: 12px 20px; opacity: 0; pointer-events: none; transition: opacity 0.2s ease; }
+  #toast { position: absolute; inset: 0; padding: 0 18px; display: flex; align-items: center; gap: 12px; opacity: 0; pointer-events: none; transition: opacity 0.2s ease; }
+  #toastIcon, .nf-icon { width: 34px; height: 34px; flex: none; border-radius: 50%; display: grid; place-items: center; background: var(--faint); font-weight: 700; font-size: 14px; }
+  #toastIcon.brand, .nf-icon.brand { background: var(--brand-gradient); color: #fff; font-family: "Outfit", sans-serif; }
+  .toast-text { min-width: 0; flex: 1; }
   #notch.notify #toast { opacity: 1; transition-delay: 0.12s; }
   #toastApp { color: var(--dim); font-size: 11px; }
   #toastSummary { font-weight: 650; }
@@ -131,6 +138,59 @@
   #cardTemp { font-size: 26px; font-weight: 700; letter-spacing: -0.5px; line-height: 1.1; font-variant-numeric: tabular-nums; }
   #cardCondition { color: var(--dim); font-size: 12px; }
 
+  .brand { display: flex; align-items: center; gap: 6px; font-family: "Outfit", sans-serif; font-weight: 700; font-size: 15px; background: var(--brand-gradient); -webkit-background-clip: text; background-clip: text; color: transparent; width: max-content; }
+  .brand svg { width: 20px; height: 20px; fill: none; }
+  #page-prayer { gap: 16px; align-items: stretch; }
+  .prayer-next { width: 176px; flex: none; display: flex; flex-direction: column; justify-content: center; gap: 2px; min-width: 0; }
+  .prayer-next .caption { color: var(--dim); font-size: 11px; margin-top: 8px; }
+  #prayerName { font-family: "Outfit", sans-serif; font-size: 22px; font-weight: 700; line-height: 1.1; }
+  #prayerCountdown { font-size: 26px; font-weight: 700; letter-spacing: -0.5px; line-height: 1.1; font-variant-numeric: tabular-nums; }
+  #prayerPlace { color: var(--dim); font-size: 11px; margin-top: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .prayer-list { flex: 1; min-width: 0; display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; }
+  .prayer-slot { border-radius: 14px; background: var(--card); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; transition: background 0.3s, opacity 0.3s; }
+  .prayer-slot .name { font-size: 10.5px; color: var(--dim); }
+  .prayer-slot .time { font-size: 13.5px; font-weight: 650; font-variant-numeric: tabular-nums; }
+  .prayer-slot.minor .time { font-weight: 500; color: var(--dim); }
+  .prayer-slot.done { opacity: 0.45; }
+  .prayer-slot.next { background: var(--brand-gradient); }
+  .prayer-slot.next .name, .prayer-slot.next .time { color: #fff; }
+
+  #page-calendar { gap: 18px; }
+  .cal-box { width: 262px; flex: none; display: flex; flex-direction: column; }
+  .cal-head { display: flex; align-items: center; justify-content: space-between; height: 22px; font-weight: 650; font-size: 13px; text-transform: capitalize; }
+  .cal-nav { width: 22px; height: 22px; border-radius: 7px; color: var(--dim); font-size: 15px; line-height: 1; }
+  .cal-nav:hover { background: var(--faint); color: var(--text); }
+  .cal-weekdays, .cal-days { display: grid; grid-template-columns: repeat(7, 1fr); }
+  .cal-weekdays span { text-align: center; font-size: 10px; color: var(--dim); line-height: 16px; }
+  .cal-days { grid-auto-rows: 19px; }
+  .cal-day { border-radius: 8px; font-size: 11.5px; font-variant-numeric: tabular-nums; }
+  .cal-day:hover { background: var(--faint); }
+  .cal-day.outside { color: rgba(255, 255, 255, 0.3); }
+  .cal-day.today { background: #fff; color: #000; font-weight: 700; }
+  .cal-day.selected:not(.today) { box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.5); }
+  .cal-detail { flex: 1; min-width: 0; border-inline-start: 1px solid rgba(255, 255, 255, 0.06); padding-inline-start: 18px; display: flex; flex-direction: column; justify-content: center; gap: 2px; }
+  #calBigDay { font-size: 44px; font-weight: 750; line-height: 1; letter-spacing: -1px; }
+  #calWeekday { font-weight: 650; font-size: 14px; margin-top: 4px; }
+  #calDate { color: var(--dim); font-size: 12px; }
+  #calHijri { font-size: 12px; font-weight: 600; margin-top: 6px; background: var(--brand-gradient); -webkit-background-clip: text; background-clip: text; color: transparent; width: max-content; }
+  .pill-btn { height: 24px; padding: 0 11px; border-radius: 12px; background: var(--faint); font-size: 11px; font-weight: 600; width: max-content; margin-top: 8px; transition: background 0.15s; }
+  .pill-btn:hover { background: rgba(255, 255, 255, 0.14); }
+
+  #page-notifications { flex-direction: column; gap: 8px; }
+  .nf-head { display: flex; align-items: center; justify-content: space-between; font-weight: 650; font-size: 13px; }
+  .nf-head .pill-btn { margin-top: 0; }
+  #nfList { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; scrollbar-width: none; }
+  #nfList::-webkit-scrollbar { display: none; }
+  .nf-item { display: flex; align-items: center; gap: 10px; padding: 7px 10px; background: var(--card); border-radius: 14px; flex: none; }
+  .nf-icon { width: 28px; height: 28px; font-size: 12px; }
+  .nf-main { min-width: 0; flex: 1; }
+  .nf-top { display: flex; justify-content: space-between; gap: 8px; font-size: 10.5px; color: var(--dim); }
+  .nf-summary { font-size: 12.5px; font-weight: 650; }
+  .nf-body { font-size: 11.5px; color: var(--dim); }
+  .nf-summary, .nf-body { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .nf-empty { flex: 1; display: grid; place-items: center; color: var(--dim); font-size: 12px; }
+  .tab.unread::after { content: ""; position: absolute; top: 2px; right: 2px; width: 6px; height: 6px; border-radius: 50%; background: var(--red); }
+  .tab { position: relative; }
   #page-control { gap: 12px; align-items: stretch; }
   .sliders { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 14px; min-width: 0; }
   .slider-row { display: flex; align-items: center; gap: 10px; }
@@ -176,15 +236,21 @@
   </div>
 
   <div id="toast">
-    <div id="toastApp"></div>
-    <div id="toastSummary"></div>
-    <div id="toastBody"></div>
+    <div id="toastIcon"></div>
+    <div class="toast-text">
+      <div id="toastApp"></div>
+      <div id="toastSummary"></div>
+      <div id="toastBody"></div>
+    </div>
   </div>
 
   <div id="open">
     <header>
       <nav id="tabs">
         <button class="tab active" data-tab="home" aria-label="Beranda"><svg viewBox="0 0 16 16"><path d="M6 12.5V4l7-1.5v8"/><circle cx="4.5" cy="12.5" r="2"/><circle cx="11.5" cy="11" r="2"/></svg><span class="tab-name">Beranda</span></button>
+        <button class="tab" data-tab="calendar" aria-label="Kalender"><svg viewBox="0 0 16 16"><path fill-rule="evenodd" d="M3 3h10a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zm.2 3.200v6.600h9.600V6.200zM4.800 1.500h1.400v2.300H4.800zM9.800 1.500h1.400v2.300H9.800z"/></svg><span class="tab-name">Kalender</span></button>
+        <button class="tab" data-tab="prayer" aria-label="Shalat"><svg viewBox="0 0 16 16"><path d="M9.500 1.500a6.500 6.500 0 1 0 5 10.700A5.500 5.500 0 0 1 9.500 1.500z"/></svg><span class="tab-name">Shalat</span></button>
+        <button class="tab" data-tab="notifications" aria-label="Notifikasi"><svg viewBox="0 0 16 16"><path d="M8 1.500a4 4 0 0 0-4 4v2.600L2.700 10.500V12h10.600v-1.500L12 8.100V5.500a4 4 0 0 0-4-4zM6.500 13h3a1.500 1.500 0 0 1-3 0z"/></svg><span class="tab-name">Notifikasi</span></button>
         <button class="tab" data-tab="control" aria-label="Kontrol"><svg viewBox="0 0 16 16"><path d="M2 4h7v1.6H2zM11 4h3v1.6h-3zM9 2.5h2v4.6H9zM2 10.4h3v1.6H2zM7 10.4h7V12H7zM5 8.9h2v4.6H5z"/></svg><span class="tab-name">Kontrol</span></button>
         <button class="tab" data-tab="focus" aria-label="Fokus"><svg viewBox="0 0 16 16"><path d="M8 1.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13zm0 1.6a4.9 4.9 0 1 1 0 9.8 4.9 4.9 0 0 1 0-9.8zM7.2 4.8h1.6v3.4l2.2 1.3-.8 1.3-3-1.8z"/></svg><span class="tab-name">Fokus</span></button>
       </nav>
@@ -223,6 +289,41 @@
           <div id="cardTemp"></div>
           <div id="cardCondition"></div>
         </div>
+      </section>
+
+      <section class="tab-page" id="page-calendar">
+        <div class="cal-box">
+          <div class="cal-head">
+            <button class="cal-nav" id="calPrev" aria-label="Bulan sebelumnya">‹</button>
+            <span id="calTitle"></span>
+            <button class="cal-nav" id="calNext" aria-label="Bulan berikutnya">›</button>
+          </div>
+          <div class="cal-weekdays"></div>
+          <div class="cal-days" id="calDays"></div>
+        </div>
+        <div class="cal-detail">
+          <div id="calBigDay"></div>
+          <div id="calWeekday"></div>
+          <div id="calDate"></div>
+          <div id="calHijri"></div>
+          <button class="pill-btn" id="calToday">Hari ini</button>
+        </div>
+      </section>
+
+      <section class="tab-page" id="page-prayer">
+        <div class="prayer-next">
+          <div class="brand"><svg viewBox="30 30 80 80"><defs><linearGradient id="bellGradient" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#2db1b3"/><stop offset="1" stop-color="#7ac793"/></linearGradient></defs><path d="M46.700 63A23.300 23.300 0 0 1 93.300 63v9.300a4.700 4.700 0 0 1-4.700 4.700H51.300a4.700 4.700 0 0 1-4.600-4.700z" fill="url(#bellGradient)"/><rect x="42" y="77" width="56" height="7" rx="3.500" fill="url(#bellGradient)"/><circle cx="70" cy="92.200" r="8.200" fill="#7ac793"/></svg>tanbih</div>
+          <div class="caption">Berikutnya</div>
+          <div id="prayerName"></div>
+          <div id="prayerCountdown"></div>
+          <div id="prayerPlace"></div>
+        </div>
+        <div class="prayer-list" id="prayerList"></div>
+      </section>
+
+      <section class="tab-page" id="page-notifications">
+        <div class="nf-head"><span>Notifikasi</span><button class="pill-btn" id="nfClear">Hapus semua</button></div>
+        <div id="nfList"></div>
       </section>
 
       <section class="tab-page" id="page-control">
@@ -267,7 +368,7 @@
   const SIZES = {
     closed: { width: 200, height: 32, radius: 12 },
     notify: { width: 380, height: 64, radius: 22 },
-    open: { width: 560, height: 200, radius: 28 },
+    open: { width: 560, height: 220, radius: 28 },
     away: { width: 0, height: 0, radius: 0 },
   };
   const TOAST_DURATION_MS = 5000;
@@ -317,6 +418,8 @@
 
   const showToast = (appName, summary, body) => {
     if (isAway || notch.classList.contains('open')) return;
+    byId('toastIcon').textContent = appInitial(appName);
+    byId('toastIcon').classList.toggle('brand', appName === BRAND_APP_NAME);
     byId('toastApp').textContent = appName;
     byId('toastSummary').textContent = summary;
     byId('toastBody').textContent = body;
@@ -325,6 +428,64 @@
     clearTimeout(toastTimer);
     toastTimer = setTimeout(hideToast, TOAST_DURATION_MS);
   };
+
+  const BRAND_APP_NAME = 'Tanbih';
+  const NOTIFICATION_HISTORY_LIMIT = 30;
+  const notifications = [];
+  const appInitial = (appName) => (appName || '?').trim().charAt(0).toUpperCase();
+  const isNotificationsVisible = () => notch.classList.contains('open') && byId('page-notifications').classList.contains('active');
+
+  const markNotificationsRead = () => document.querySelector('.tab[data-tab="notifications"]').classList.remove('unread');
+
+  const renderNotifications = () => {
+    const list = byId('nfList');
+    list.replaceChildren();
+    if (!notifications.length) {
+      const empty = document.createElement('div');
+      empty.className = 'nf-empty';
+      empty.textContent = 'Belum ada notifikasi';
+      list.append(empty);
+      return;
+    }
+    notifications.forEach((entry) => {
+      const item = document.createElement('div');
+      item.className = 'nf-item';
+      const icon = document.createElement('div');
+      icon.className = entry.appName === BRAND_APP_NAME ? 'nf-icon brand' : 'nf-icon';
+      icon.textContent = appInitial(entry.appName);
+      const main = document.createElement('div');
+      main.className = 'nf-main';
+      const top = document.createElement('div');
+      top.className = 'nf-top';
+      const app = document.createElement('span');
+      app.textContent = entry.appName;
+      const time = document.createElement('span');
+      time.textContent = entry.at.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+      top.append(app, time);
+      const summary = document.createElement('div');
+      summary.className = 'nf-summary';
+      summary.textContent = entry.summary;
+      const body = document.createElement('div');
+      body.className = 'nf-body';
+      body.textContent = entry.body;
+      main.append(top, summary, body);
+      item.append(icon, main);
+      list.append(item);
+    });
+  };
+
+  const notify = (appName, summary, body) => {
+    notifications.unshift({ appName, summary, body, at: new Date() });
+    notifications.length = Math.min(notifications.length, NOTIFICATION_HISTORY_LIMIT);
+    if (!isNotificationsVisible()) document.querySelector('.tab[data-tab="notifications"]').classList.add('unread');
+    renderNotifications();
+    showToast(appName, summary, body);
+  };
+
+  byId('nfClear').addEventListener('click', () => {
+    notifications.length = 0;
+    renderNotifications();
+  });
 
   const closeNotch = () => {
     notch.classList.remove('open');
@@ -338,7 +499,7 @@
     notch.classList.remove('notify');
     applyState();
   });
-  listen('notification', (event) => showToast(event.payload.app_name, event.payload.summary, event.payload.body));
+  listen('notification', (event) => notify(event.payload.app_name, event.payload.summary, event.payload.body));
 
   notch.addEventListener('click', () => {
     if (notch.classList.contains('open')) return;
@@ -357,13 +518,13 @@
   });
   byId('open').addEventListener('click', (event) => event.stopPropagation());
 
-  document.querySelectorAll('.tab').forEach((tab) => {
-    tab.addEventListener('click', () => {
-      document.querySelectorAll('.tab, .tab-page').forEach((element) => element.classList.remove('active'));
-      tab.classList.add('active');
-      byId(`page-${tab.dataset.tab}`).classList.add('active');
-    });
-  });
+  const selectTab = (tabName) => {
+    document.querySelectorAll('.tab, .tab-page').forEach((element) => element.classList.remove('active'));
+    document.querySelector(`.tab[data-tab="${tabName}"]`).classList.add('active');
+    byId(`page-${tabName}`).classList.add('active');
+    if (tabName === 'notifications') markNotificationsRead();
+  };
+  document.querySelectorAll('.tab').forEach((tab) => tab.addEventListener('click', () => selectTab(tab.dataset.tab)));
 
   const pad2 = (value) => String(value).padStart(2, '0');
   const formatClock = (milliseconds) => {
@@ -480,7 +641,7 @@
     if (pomodoro.remainingMs <= 0) {
       const finished = POMODORO_PHASES[pomodoro.phase];
       resetPhase(finished.next);
-      showToast('Pomodoro', `${finished.label} selesai`, finished.doneMessage);
+      notify('Pomodoro', `${finished.label} selesai`, finished.doneMessage);
     }
     renderPomodoro();
   };
@@ -512,6 +673,159 @@
     byId('elapsed').textContent = formatTrackTime(position);
     byId('remaining').textContent = formatTrackTime(Math.max(0, length - position));
   };
+
+  const WEEKDAYS_SHORT = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
+  const CALENDAR_CELLS = 42;
+  const DAYS_PER_WEEK = 7;
+  const hijriFormatter = new Intl.DateTimeFormat('id-u-ca-islamic-civil', { day: 'numeric', month: 'long', year: 'numeric' });
+  const isSameDay = (first, second) => first.toDateString() === second.toDateString();
+  let calendarMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+  let selectedDate = new Date();
+
+  const renderCalendarDetail = () => {
+    byId('calBigDay').textContent = selectedDate.getDate();
+    byId('calWeekday').textContent = selectedDate.toLocaleDateString('id-ID', { weekday: 'long' });
+    byId('calDate').textContent = selectedDate.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+    byId('calHijri').textContent = hijriFormatter.format(selectedDate);
+  };
+
+  const renderCalendar = () => {
+    byId('calTitle').textContent = calendarMonth.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
+    const leadingDays = (calendarMonth.getDay() + DAYS_PER_WEEK - 1) % DAYS_PER_WEEK;
+    const today = new Date();
+    const days = byId('calDays');
+    days.replaceChildren();
+    for (let index = 0; index < CALENDAR_CELLS; index++) {
+      const date = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth(), 1 - leadingDays + index);
+      const cell = document.createElement('button');
+      cell.className = 'cal-day';
+      cell.textContent = date.getDate();
+      cell.classList.toggle('outside', date.getMonth() !== calendarMonth.getMonth());
+      cell.classList.toggle('today', isSameDay(date, today));
+      cell.classList.toggle('selected', isSameDay(date, selectedDate));
+      cell.addEventListener('click', () => {
+        selectedDate = date;
+        calendarMonth = new Date(date.getFullYear(), date.getMonth(), 1);
+        renderCalendar();
+      });
+      days.append(cell);
+    }
+    renderCalendarDetail();
+  };
+
+  const shiftCalendarMonth = (delta) => {
+    calendarMonth = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + delta, 1);
+    renderCalendar();
+  };
+  byId('calPrev').addEventListener('click', () => shiftCalendarMonth(-1));
+  byId('calNext').addEventListener('click', () => shiftCalendarMonth(1));
+  byId('calToday').addEventListener('click', () => {
+    selectedDate = new Date();
+    calendarMonth = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1);
+    renderCalendar();
+  });
+  const weekdayHeader = document.querySelector('.cal-weekdays');
+  WEEKDAYS_SHORT.forEach((name) => {
+    const label = document.createElement('span');
+    label.textContent = name;
+    weekdayHeader.append(label);
+  });
+
+  const MINUTES_PER_DAY = 24 * 60;
+  const SECONDS_PER_MINUTE = 60;
+  const PRAYER_SLOTS = [
+    { key: 'fajr', label: 'Subuh' },
+    { key: 'sunrise', label: 'Terbit', minor: true },
+    { key: 'dhuhr', label: 'Dzuhur' },
+    { key: 'asr', label: 'Ashar' },
+    { key: 'maghrib', label: 'Maghrib' },
+    { key: 'isha', label: 'Isya' },
+  ];
+  const PRAYERS = PRAYER_SLOTS.filter((slot) => !slot.minor);
+  let prayerSchedule = null;
+  let notifiedPrayers = new Set();
+
+  const formatMinutesOfDay = (minutes) => {
+    const wholeMinutes = Math.ceil(minutes) % MINUTES_PER_DAY;
+    return `${pad2(Math.floor(wholeMinutes / 60))}:${pad2(wholeMinutes % 60)}`;
+  };
+  const formatCountdown = (seconds) => {
+    const total = Math.max(0, Math.ceil(seconds));
+    return `${Math.floor(total / 3600)}:${pad2(Math.floor((total % 3600) / 60))}:${pad2(total % 60)}`;
+  };
+  const minutesNow = (now) => now.getHours() * 60 + now.getMinutes() + now.getSeconds() / SECONDS_PER_MINUTE;
+
+  const buildPrayerList = () => {
+    const list = byId('prayerList');
+    list.replaceChildren();
+    PRAYER_SLOTS.forEach((slot) => {
+      const element = document.createElement('div');
+      element.className = slot.minor ? 'prayer-slot minor' : 'prayer-slot';
+      element.dataset.key = slot.key;
+      const name = document.createElement('span');
+      name.className = 'name';
+      name.textContent = slot.label;
+      const time = document.createElement('span');
+      time.className = 'time';
+      element.append(name, time);
+      list.append(element);
+    });
+  };
+
+  const nextPrayer = (times, now) => {
+    const upcoming = PRAYERS.find((slot) => times[slot.key] > now);
+    if (upcoming) return { slot: upcoming, minutes: times[upcoming.key] };
+    // shortcut: tomorrow's Subuh is today's shifted by a day, off by about a minute, fine for a countdown
+    return { slot: PRAYERS[0], minutes: times.fajr + MINUTES_PER_DAY };
+  };
+
+  const renderPrayer = () => {
+    if (!prayerSchedule) return;
+    const { times, city } = prayerSchedule;
+    const now = minutesNow(new Date());
+    const next = nextPrayer(times, now);
+    byId('prayerName').textContent = next.slot.label;
+    byId('prayerCountdown').textContent = formatCountdown((next.minutes - now) * SECONDS_PER_MINUTE);
+    byId('prayerPlace').textContent = `${city} · ${formatMinutesOfDay(next.minutes)}`;
+    byId('prayerList').querySelectorAll('.prayer-slot').forEach((element) => {
+      const { key } = element.dataset;
+      element.querySelector('.time').textContent = formatMinutesOfDay(times[key]);
+      element.classList.toggle('next', key === next.slot.key);
+      element.classList.toggle('done', times[key] <= now && key !== next.slot.key);
+    });
+  };
+
+  const loadPrayer = async () => {
+    const { latitude, longitude, city } = await resolveLocation();
+    const now = new Date();
+    const times = await invoke('prayer_times_for_day', {
+      latitude, longitude, year: now.getFullYear(), month: now.getMonth() + 1, day: now.getDate(), utcOffsetMinutes: -now.getTimezoneOffset(),
+    });
+    if (!times) return;
+    prayerSchedule = { dayKey: now.toDateString(), times, city };
+    notifiedPrayers = new Set(PRAYERS.filter((slot) => times[slot.key] <= minutesNow(now)).map((slot) => slot.key));
+    renderPrayer();
+  };
+
+  const tickPrayer = () => {
+    if (!prayerSchedule) return;
+    if (prayerSchedule.dayKey !== new Date().toDateString()) {
+      loadPrayer();
+      return;
+    }
+    const now = minutesNow(new Date());
+    PRAYERS.filter((slot) => !notifiedPrayers.has(slot.key) && prayerSchedule.times[slot.key] <= now).forEach((slot) => {
+      notifiedPrayers.add(slot.key);
+      notify(BRAND_APP_NAME, `Waktu ${slot.label}`, `${prayerSchedule.city} · ${formatMinutesOfDay(prayerSchedule.times[slot.key])}`);
+    });
+    renderPrayer();
+  };
+
+  buildPrayerList();
+  renderCalendar();
+  renderNotifications();
+  loadPrayer();
+  setInterval(tickPrayer, CLOCK_REFRESH_MS);
 
   listen('media', (event) => render(event.payload));
   render(null);
