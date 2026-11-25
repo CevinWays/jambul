@@ -3,7 +3,13 @@ use serde::Serialize;
 const FAJR_ANGLE_DEGREES: f64 = 20.0;
 const ISHA_ANGLE_DEGREES: f64 = 18.0;
 const HORIZON_ANGLE_DEGREES: f64 = 0.833;
-const IHTIYATI_MINUTES: f64 = 2.0;
+// Calibrated against the published Kemenag timetable, the same values as the Tanbih app
+const FAJR_IHTIYATI_MINUTES: f64 = 2.0;
+const SUNRISE_IHTIYATI_MINUTES: f64 = -3.0;
+const DHUHR_IHTIYATI_MINUTES: f64 = 4.0;
+const ASR_IHTIYATI_MINUTES: f64 = 3.0;
+const MAGHRIB_IHTIYATI_MINUTES: f64 = 4.0;
+const ISHA_IHTIYATI_MINUTES: f64 = 2.0;
 const MINUTES_PER_HOUR: f64 = 60.0;
 const DEGREES_PER_HOUR: f64 = 15.0;
 const J2000_JULIAN_DAY: f64 = 2_451_545.0;
@@ -64,7 +70,7 @@ fn asr_angle_degrees(latitude: f64, declination: f64) -> f64 {
     -(1.0 / shadow_length).atan().to_degrees()
 }
 
-// shortcut: sun position is taken at local noon for every time, about a minute of error, the ihtiyati margin absorbs it
+// shortcut: sun position is taken at local noon for every time, a fraction of a minute of error, covered by the calibrated ihtiyati
 pub fn prayer_times(
     latitude_degrees: f64,
     longitude_degrees: f64,
@@ -75,20 +81,19 @@ pub fn prayer_times(
 ) -> Option<PrayerTimes> {
     let latitude = latitude_degrees.to_radians();
     let utc_offset_hours = utc_offset_minutes as f64 / MINUTES_PER_HOUR;
-    let julian = julian_day(year, month, day) - longitude_degrees / (DEGREES_PER_HOUR * 24.0);
+    let julian = julian_day(year, month, day) + 0.5 - longitude_degrees / (DEGREES_PER_HOUR * 24.0);
     let sun = sun_at(julian);
     let noon_hours = 12.0 - sun.equation_of_time_hours + utc_offset_hours - longitude_degrees / DEGREES_PER_HOUR;
     let before = |angle: f64| hours_from_noon(angle, latitude, sun.declination).map(|offset| noon_hours - offset);
     let after = |angle: f64| hours_from_noon(angle, latitude, sun.declination).map(|offset| noon_hours + offset);
     let to_minutes = |hours: f64, adjustment: f64| hours * MINUTES_PER_HOUR + adjustment;
     Some(PrayerTimes {
-        fajr: to_minutes(before(FAJR_ANGLE_DEGREES)?, IHTIYATI_MINUTES),
-        // TODO: unverified — Kemenag's sunrise ihtiyati is assumed to be subtracted
-        sunrise: to_minutes(before(HORIZON_ANGLE_DEGREES)?, -IHTIYATI_MINUTES),
-        dhuhr: to_minutes(noon_hours, IHTIYATI_MINUTES),
-        asr: to_minutes(after(asr_angle_degrees(latitude, sun.declination))?, IHTIYATI_MINUTES),
-        maghrib: to_minutes(after(HORIZON_ANGLE_DEGREES)?, IHTIYATI_MINUTES),
-        isha: to_minutes(after(ISHA_ANGLE_DEGREES)?, IHTIYATI_MINUTES),
+        fajr: to_minutes(before(FAJR_ANGLE_DEGREES)?, FAJR_IHTIYATI_MINUTES),
+        sunrise: to_minutes(before(HORIZON_ANGLE_DEGREES)?, SUNRISE_IHTIYATI_MINUTES),
+        dhuhr: to_minutes(noon_hours, DHUHR_IHTIYATI_MINUTES),
+        asr: to_minutes(after(asr_angle_degrees(latitude, sun.declination))?, ASR_IHTIYATI_MINUTES),
+        maghrib: to_minutes(after(HORIZON_ANGLE_DEGREES)?, MAGHRIB_IHTIYATI_MINUTES),
+        isha: to_minutes(after(ISHA_ANGLE_DEGREES)?, ISHA_IHTIYATI_MINUTES),
     })
 }
 
@@ -142,5 +147,44 @@ mod tests {
     #[test]
     fn no_fajr_inside_the_polar_summer() {
         assert_eq!(prayer_times(78.0, 15.0, 2026, 6, 21, 120), None);
+    }
+
+    struct GoldenCase {
+        name: &'static str,
+        latitude: f64,
+        longitude: f64,
+        utc_offset_minutes: i32,
+        date: (i32, u32, u32),
+        published: [&'static str; 6],
+    }
+
+    // Kemenag RI timetable, copied from the Tanbih app's golden test: fajr, sunrise, dhuhr, asr, maghrib, isha
+    const GOLDEN_CASES: [GoldenCase; 8] = [
+        GoldenCase { name: "Jakarta 2026-09-07", latitude: -6.2088, longitude: 106.8456, utc_offset_minutes: 420, date: (2026, 9, 7), published: ["04:35", "05:47", "11:54", "15:10", "17:55", "19:03"] },
+        GoldenCase { name: "Jakarta 2026-06-21", latitude: -6.2088, longitude: 106.8456, utc_offset_minutes: 420, date: (2026, 6, 21), published: ["04:40", "05:58", "11:58", "15:19", "17:51", "19:05"] },
+        GoldenCase { name: "Jakarta 2026-12-21", latitude: -6.2088, longitude: 106.8456, utc_offset_minutes: 420, date: (2026, 12, 21), published: ["04:13", "05:33", "11:54", "15:20", "18:08", "19:24"] },
+        GoldenCase { name: "Jakarta 2027-03-20", latitude: -6.2088, longitude: 106.8456, utc_offset_minutes: 420, date: (2027, 3, 20), published: ["04:42", "05:54", "12:04", "15:13", "18:07", "19:15"] },
+        GoldenCase { name: "Makassar 2026-09-07", latitude: -5.1477, longitude: 119.4327, utc_offset_minutes: 480, date: (2026, 9, 7), published: ["04:45", "05:56", "12:04", "15:19", "18:05", "19:13"] },
+        GoldenCase { name: "Makassar 2026-12-21", latitude: -5.1477, longitude: 119.4327, utc_offset_minutes: 480, date: (2026, 12, 21), published: ["04:25", "05:44", "12:04", "15:30", "18:16", "19:31"] },
+        GoldenCase { name: "Jayapura 2026-09-07", latitude: -2.5916, longitude: 140.669, utc_offset_minutes: 540, date: (2026, 9, 7), published: ["04:19", "05:30", "11:39", "14:51", "17:41", "18:49"] },
+        GoldenCase { name: "Jayapura 2026-12-21", latitude: -2.5916, longitude: 140.669, utc_offset_minutes: 540, date: (2026, 12, 21), published: ["04:05", "05:24", "11:39", "15:04", "17:46", "19:01"] },
+    ];
+
+    fn minutes_of(clock: &str) -> f64 {
+        let (hour, minute) = clock.split_once(':').unwrap();
+        hour.parse::<f64>().unwrap() * 60.0 + minute.parse::<f64>().unwrap()
+    }
+
+    #[test]
+    fn matches_the_kemenag_timetable_within_a_minute() {
+        for case in GOLDEN_CASES {
+            let (year, month, day) = case.date;
+            let times = prayer_times(case.latitude, case.longitude, year, month, day, case.utc_offset_minutes).unwrap();
+            let computed = [times.fajr, times.sunrise, times.dhuhr, times.asr, times.maghrib, times.isha];
+            for (index, minutes) in computed.iter().enumerate() {
+                let deviation = (minutes.round() - minutes_of(case.published[index])).abs();
+                assert!(deviation <= 1.0, "{} slot {index}: computed {minutes:.2}, published {}", case.name, case.published[index]);
+            }
+        }
     }
 }

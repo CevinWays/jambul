@@ -746,7 +746,7 @@
   let notifiedPrayers = new Set();
 
   const formatMinutesOfDay = (minutes) => {
-    const wholeMinutes = Math.ceil(minutes) % MINUTES_PER_DAY;
+    const wholeMinutes = Math.round(minutes) % MINUTES_PER_DAY;
     return `${pad2(Math.floor(wholeMinutes / 60))}:${pad2(wholeMinutes % 60)}`;
   };
   const formatCountdown = (seconds) => {
