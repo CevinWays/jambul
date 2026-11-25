@@ -40,16 +40,16 @@ Run with `cargo run`. Test with `cargo test`.
 
 ## 4. Design system
 
-The UI is a black notch; everything else is transparent and click-through.
+The look follows Poni's notch (studied from its frontend; reimplemented, nothing copied). Everything outside the notch is transparent and click-through.
 
-- **Colors:** pill `#000`; primary text `#fff`; secondary `#ccc`; muted `#aaa`; surfaces and inactive buttons `#222`; tracks `#333`; accent (sliders, active toggle) `#fff` with `#000` text.
-- **Shape:** the pill is flat on top and rounded at the bottom: closed `0 0 18px 18px`, toast `0 0 24px 24px`, open `0 0 28px 28px`. Buttons use a 12px radius.
-- **States and sizes (px):** closed 160x32, toast 420x68, open 420x264, away (fullscreen) hidden. The hit rect sent to `set_hit_rect` must match the visible size.
-- **Motion:** width and height transition 0.3s with `cubic-bezier(.3,1.4,.5,1)` (springy).
-- **Type:** `13px sans-serif` base; 12px for dashboard rows; 15px bold titles; tabular numbers for timers.
-- **Layout:** rows are flex with 10 to 14px gaps and 20px side padding; text truncates with an ellipsis instead of overflowing.
-- **Icons:** plain unicode glyphs and inline SVG data URIs. No icon library.
-- **Defaults:** missing album art falls back to the built-in music-note SVG.
+- **Tokens (CSS variables on `:root`):** `--bg #000`, `--text #f5f5f7`, `--dim #8e8e93`, `--faint rgba(255,255,255,.08)`, `--card rgba(255,255,255,.055)`, status colors `--green #30d158`, `--red #ff453a`, `--yellow #ffd60a`. Use tokens, not new hex values.
+- **Shape:** flat on top, rounded at the bottom. Concave "ears" (`--ear: 8px`) curve the notch into the screen edge. Cards use 14px radius, buttons and tabs 7 to 10px.
+- **States and sizes (px):** the `SIZES` table in `dist/index.html` is the single source: closed 200x32, notify 380x64, open 560x200, away hidden. JS writes `--w`, `--h`, `--r` and the hit rect from it. The window itself is 640x260 (`tauri.conf.json` and `set_size_request` in `main.rs`) so the open shadow fits.
+- **Motion:** `--spring cubic-bezier(.32,1.28,.54,1)` for size changes and pops, `--smooth cubic-bezier(.32,.72,0,1)` for fades, `--dur .48s`. The open content scales in from 0.94 and fades; pages slide in 6px.
+- **Layout:** closed shows the clock centered, mini cover art left while playing, pomodoro time right while running. Open has a header (tab pill with an expanding active label, clock, battery) over a page area: Beranda (music card plus weather card), Kontrol (volume and brightness sliders, Wi-Fi and Bluetooth tiles), Fokus (pomodoro).
+- **Type:** Inter/system sans 13px base; 14.5px/650 track title; 12.5px dim secondary; tabular numbers for any time.
+- **Controls:** 34px round buttons, 42px for play, white-on-black active tiles, 5px progress bar.
+- **Icons:** inline SVG with `fill: currentColor`. No icon library or font. Missing cover art falls back to the built-in music-note SVG.
 
 ## 5. What to avoid
 
@@ -63,5 +63,5 @@ The UI is a black notch; everything else is transparent and click-through.
 - **Do not change the global git identity.** The identity is set locally in this repo (CevinWays). Never use the work email or enter personal details into outside services.
 - **Do not install or download third-party code** without the user asking or approving.
 - **Do not claim something works unless it was checked.** Visual behavior needs the user's eyes on the screen; say what was not verified.
-- **Do not hardcode the layout size in only one place.** Pill sizes live in both the CSS and the `sizes` table in `dist/index.html`; change both.
+- **Do not hardcode pill sizes in CSS.** They come from the `SIZES` table in `dist/index.html`.
 - **Commit trailer:** end commit messages with `Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>`.
