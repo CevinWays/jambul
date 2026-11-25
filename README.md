@@ -10,6 +10,7 @@ Inspired by [Poni](https://github.com/liimalim/Poni) for Windows. Not affiliated
 - Media widget for any MPRIS player (title, artist, art, progress, controls)
 - Notification toasts, shown by monitoring `org.freedesktop.Notifications` (jambul asks Plasma to hold back its own popups; unverified)
 - Dashboard: clock, battery, volume (`wpctl`), brightness (logind), Wi-Fi (`nmcli`) and Bluetooth (`bluetoothctl`) toggles, weather (Open-Meteo, located by IP via ipwho.is)
+- Calendar with Hijri date, notification history, and prayer times (Kemenag RI method, Tanbih branding)
 - Pomodoro timer (25 min focus, 5 min break), shown in the closed pill while running
 - Hides itself while a window is fullscreen (KDE only, through a KWin script)
 
@@ -94,3 +95,8 @@ On Arch you can also build a package with the included `PKGBUILD` (`makepkg -si`
 ## License
 
 MIT, see [LICENSE](LICENSE).
+
+## Credits
+
+- Prayer times follow the Kemenag RI method, branded after the author's Tanbih app.
+- Outfit font by The Outfit Project Authors, SIL Open Font License 1.1 (`dist/fonts/OFL-Outfit.txt`).

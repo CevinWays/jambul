@@ -44,11 +44,12 @@ The look follows Poni's notch (studied from its frontend; reimplemented, nothing
 
 - **Tokens (CSS variables on `:root`):** `--bg #000`, `--text #f5f5f7`, `--dim #8e8e93`, `--faint rgba(255,255,255,.08)`, `--card rgba(255,255,255,.055)`, status colors `--green #30d158`, `--red #ff453a`, `--yellow #ffd60a`. Use tokens, not new hex values.
 - **Shape:** flat on top, rounded at the bottom. Concave "ears" (`--ear: 8px`) curve the notch into the screen edge. Cards use 14px radius, buttons and tabs 7 to 10px.
-- **States and sizes (px):** the `SIZES` table in `dist/index.html` is the single source: closed 200x32, notify 380x64, open 560x200, away hidden. JS writes `--w`, `--h`, `--r` and the hit rect from it. The window itself is 640x260 (`tauri.conf.json` and `set_size_request` in `main.rs`) so the open shadow fits.
+- **States and sizes (px):** the `SIZES` table in `dist/index.html` is the single source: closed 200x32, notify 380x64, open 560x220, away hidden. JS writes `--w`, `--h`, `--r` and the hit rect from it. The window itself is 640x290 (`tauri.conf.json` and `set_size_request` in `main.rs`) so the open shadow fits.
 - **Motion:** `--spring cubic-bezier(.32,1.28,.54,1)` for size changes and pops, `--smooth cubic-bezier(.32,.72,0,1)` for fades, `--dur .48s`. The open content scales in from 0.94 and fades; pages slide in 6px.
-- **Layout:** closed shows the clock centered, mini cover art left while playing, pomodoro time right while running. Open has a header (tab pill with an expanding active label, clock, battery) over a page area: Beranda (music card plus weather card), Kontrol (volume and brightness sliders, Wi-Fi and Bluetooth tiles), Fokus (pomodoro).
+- **Layout:** closed shows the clock centered, mini cover art left while playing, pomodoro time right while running. Open has a header (tab pill with an expanding active label, clock, battery) over a page area: Beranda (music card plus weather card), Kalender (month grid with Gregorian and Hijri date), Shalat (prayer times), Notifikasi (history), Kontrol (volume and brightness sliders, Wi-Fi and Bluetooth tiles), Fokus (pomodoro).
 - **Type:** Inter/system sans 13px base; 14.5px/650 track title; 12.5px dim secondary; tabular numbers for any time.
 - **Controls:** 34px round buttons, 42px for play, white-on-black active tiles, 5px progress bar.
+- **Tanbih brand:** the prayer feature shares the brand of the author's Flutter app Tanbih (github.com/CevinWays/tanbih): teal to mint gradient (`--brand-gradient`, `#2db1b3` to `#7ac793`), the bell mark, and Outfit for the wordmark and prayer names. Prayer notifications use the app name `Tanbih`. Calculation follows Kemenag RI (Fajr 20 deg, Isha 18 deg, ihtiyati 2 min). Outfit is bundled under OFL (`dist/fonts/OFL-Outfit.txt`).
 - **Icons:** inline SVG with `fill: currentColor`. No icon library or font. Missing cover art falls back to the built-in music-note SVG.
 
 ## 5. What to avoid
