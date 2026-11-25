@@ -12,6 +12,7 @@
     --green: #30d158;
     --red: #ff453a;
     --yellow: #ffd60a;
+    --eve: #6be6ff;
     --brand-teal: #2db1b3;
     --brand-mint: #7ac793;
     --brand-gradient: linear-gradient(135deg, var(--brand-teal), var(--brand-mint));
@@ -63,6 +64,18 @@
     font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; color: rgba(255, 255, 255, 0.86);
   }
 
+  #eyes { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 13px; pointer-events: none; opacity: 0; transition: opacity 0.3s ease, transform 0.35s var(--spring); }
+  .eye { width: 14px; height: 11px; border-radius: 50%; background: var(--eve); box-shadow: 0 0 7px 1px rgba(107, 230, 255, 0.65); transition: transform 0.22s var(--spring), height 0.18s ease, width 0.18s ease, border-radius 0.18s ease, background 0.18s ease; animation: eyeGlow 3.2s ease-in-out infinite; }
+  @keyframes eyeGlow { 50% { box-shadow: 0 0 10px 2px rgba(107, 230, 255, 0.85); } }
+  #notch.idle #eyes { opacity: 1; }
+  #notch.idle #idleClock { opacity: 0; }
+  #idleClock { transition: opacity 0.3s ease; }
+  #notch.idle:hover .eye { width: 16px; height: 13px; }
+  #eyes.look-left { transform: translateX(-9px); }
+  #eyes.look-right { transform: translateX(9px); }
+  #eyes.blink .eye { transform: scaleY(0.1); }
+  #eyes.squint .eye { height: 7px; border-radius: 50% 50% 2px 2px; background: transparent; box-shadow: 0 -2px 7px 0 rgba(107, 230, 255, 0.55); border-top: 3px solid var(--eve); }
+  @media (prefers-reduced-motion: reduce) { .eye { animation: none; } }
   #toast { position: absolute; inset: 0; padding: 0 18px; display: flex; align-items: center; gap: 12px; opacity: 0; pointer-events: none; transition: opacity 0.2s ease; }
   #toastIcon, .nf-icon { width: 34px; height: 34px; flex: none; border-radius: 50%; display: grid; place-items: center; background: var(--faint); font-weight: 700; font-size: 14px; }
   #toastIcon.brand, .nf-icon.brand { background: var(--brand-gradient); color: #fff; font-family: "Outfit", sans-serif; }
@@ -233,6 +246,7 @@
     <div class="gap"></div>
     <span id="closedTimer"></span>
     <div id="idleClock"></div>
+    <div id="eyes"><span class="eye"></span><span class="eye"></span></div>
   </div>
 
   <div id="toast">
@@ -401,6 +415,10 @@
     if (notch.classList.contains('open')) return 'open';
     if (notch.classList.contains('notify')) return 'notify';
     return 'closed';
+  };
+
+  const updateIdle = () => {
+    notch.classList.toggle('idle', !notch.classList.contains('playing') && !notch.classList.contains('timing'));
   };
 
   const applyState = () => {
@@ -629,6 +647,7 @@
     byId('focusToggle').innerHTML = isRunning ? ICON_PAUSE : ICON_PLAY;
     byId('closedTimer').textContent = formatClock(pomodoro.remainingMs);
     notch.classList.toggle('timing', isRunning);
+    updateIdle();
   };
 
   const resetPhase = (phaseName) => {
@@ -667,6 +686,7 @@
     byId('playPause').innerHTML = media && media.playing ? ICON_PAUSE : ICON_PLAY;
     byId('art').classList.toggle('paused', !!media && !media.playing);
     notch.classList.toggle('playing', !!media && media.playing);
+    updateIdle();
     const length = media ? media.length_us : 0;
     const position = media ? media.position_us : 0;
     byId('progressFill').style.width = length ? `${Math.min(100, (position / length) * 100)}%` : '0%';
@@ -820,6 +840,30 @@
     });
     renderPrayer();
   };
+
+  const EYE_ACTIONS = [
+    { className: 'look-left', durationMs: 1100 },
+    { className: 'look-right', durationMs: 1100 },
+    { className: 'blink', durationMs: 220 },
+    { className: 'blink', durationMs: 220 },
+    { className: 'squint', durationMs: 1500 },
+  ];
+  const EYE_PAUSE_MIN_MS = 1800;
+  const EYE_PAUSE_MAX_MS = 4800;
+  const eyes = byId('eyes');
+
+  const scheduleEyeAction = () => {
+    const pause = EYE_PAUSE_MIN_MS + Math.random() * (EYE_PAUSE_MAX_MS - EYE_PAUSE_MIN_MS);
+    setTimeout(() => {
+      if (notch.classList.contains('idle')) {
+        const action = EYE_ACTIONS[Math.floor(Math.random() * EYE_ACTIONS.length)];
+        eyes.classList.add(action.className);
+        setTimeout(() => eyes.classList.remove(action.className), action.durationMs);
+      }
+      scheduleEyeAction();
+    }, pause);
+  };
+  scheduleEyeAction();
 
   buildPrayerList();
   renderCalendar();
